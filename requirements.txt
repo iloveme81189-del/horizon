@@ -1,0 +1,4 @@
+Flask==3.0.0
+markitdown==0.0.1
+openai
+swarm @ git+https://github.com/openai/swarm.git

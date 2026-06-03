@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Horizon — Elite AI assistant for coding, analytics & document intelligence." />
+  <title>Horizon</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.4/dist/purify.min.js"></script>
+  
+  <!-- MathJax for rendering LaTeX equations -->
+  <script>
+    MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <!-- Data Parsing & Charting Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="/css/animations.css" />
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ── SIDEBAR ──────────────────────────────── -->
+  <aside id="sidebar" class="sidebar" aria-label="Conversation history">
+    <div class="sidebar-header">
+      <div class="logo-wrap">
+        <!-- Lord Shriram Bow (Kodanda) Icon -->
+        <div class="logo-icon">
+          <svg width="30" height="30" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="ramGrad" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#FF8C00"/>
+                <stop offset="100%" stop-color="#FFD700"/>
+              </linearGradient>
+            </defs>
+            <!-- Bow arc -->
+            <path d="M10 6 Q30 20 10 34" stroke="url(#ramGrad)" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <!-- Bow string -->
+            <line x1="10" y1="6" x2="10" y2="34" stroke="url(#ramGrad)" stroke-width="1.5" stroke-dasharray="2 2"/>
+            <!-- Arrow shaft -->
+            <line x1="8" y1="20" x2="30" y2="20" stroke="url(#ramGrad)" stroke-width="2.5" stroke-linecap="round"/>
+            <!-- Arrowhead -->
+            <polygon points="30,20 25,16.5 25,23.5" fill="url(#ramGrad)"/>
+            <!-- Tail feathers -->
+            <line x1="9" y1="20" x2="5" y2="16" stroke="url(#ramGrad)" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="9" y1="20" x2="5" y2="24" stroke="url(#ramGrad)" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="logo-text">Horizon</span>
+      </div>
+      <!-- This button closes sidebar — always inside sidebar -->
+      <button id="btn-toggle-sidebar" class="icon-btn" aria-label="Collapse sidebar" title="Collapse sidebar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/>
+        </svg>
+      </button>
+    </div>
+
+    <button id="btn-new-chat" class="new-chat-btn" aria-label="Start new chat">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      <span>New Chat</span>
+    </button>
+
+    <div class="sidebar-section-label">Recent</div>
+    <div id="chat-history" class="chat-history" role="list" aria-label="Chat history"></div>
+
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-avatar">H</div>
+        <div class="user-info">
+          <span class="user-name">Horizon User</span>
+          <span class="user-plan">DeepSeek · Groq</span>
+        </div>
+      </div>
+      <button id="btn-theme" class="icon-btn" aria-label="Toggle theme" title="Toggle dark/light mode">
+        <svg id="theme-icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <svg id="theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
+          <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+        </svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── PERSISTENT SIDEBAR OPEN BUTTON (shown when collapsed) ── -->
+  <button id="btn-open-sidebar" class="sidebar-open-btn" aria-label="Open sidebar" title="Open sidebar" style="display:none">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/>
+    </svg>
+  </button>
+
+  <!-- ── MAIN AREA ─────────────────────────────── -->
+  <main id="main" class="main">
+
+    <header class="topbar">
+      <button id="btn-sidebar-mobile" class="icon-btn mobile-menu-btn" aria-label="Open sidebar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+      <div class="topbar-center">
+        <span class="topbar-title">Horizon</span>
+      </div>
+      <div class="topbar-actions">
+        <!-- Swarm Toggle -->
+        <label style="display:flex;align-items:center;gap:6px;margin-right:12px;font-size:12px;font-weight:600;color:var(--saffron);cursor:pointer;">
+          <input type="checkbox" id="swarm-toggle" style="accent-color:var(--saffron);">
+          Agent Mode
+        </label>
+        <button id="btn-export" class="icon-btn" title="Export chat" aria-label="Export chat">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+        </button>
+        <button id="btn-clear" class="icon-btn" title="Clear chat" aria-label="Clear chat">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <div id="chat-container" class="chat-container" role="log" aria-live="polite">
+
+      <!-- WELCOME SCREEN — Gemini-style -->
+      <section id="welcome-screen" class="welcome-screen">
+        <div class="welcome-content">
+          <!-- Greeting (updated by JS with time-of-day) -->
+          <h1 class="welcome-greeting" id="welcome-greeting">What can I help with?</h1>
+          <p class="welcome-sub" id="welcome-sub">Clinical analytics, code debugging, and document extraction</p>
+
+          <div class="suggestion-grid" role="list">
+            <button class="suggestion-card" data-prompt="Analyze this Excel file and give key insights with charts and Python code">
+              <div class="suggestion-icon">📊</div>
+              <div class="suggestion-body">
+                <strong>Analyze Excel Data</strong>
+                <span>Extract insights &amp; visualizations</span>
+              </div>
+            </button>
+            <button class="suggestion-card" data-prompt="Write a complete Streamlit dashboard for hospital discharge TAT analysis with filters and charts">
+              <div class="suggestion-icon">🏥</div>
+              <div class="suggestion-body">
+                <strong>Build Dashboard</strong>
+                <span>Streamlit + Plotly code</span>
+              </div>
+            </button>
+            <button class="suggestion-card" data-prompt="Review my Python code for performance issues, bugs, and best practices">
+              <div class="suggestion-icon">💻</div>
+              <div class="suggestion-body">
+                <strong>Code Review</strong>
+                <span>Debug &amp; optimize code</span>
+              </div>
+            </button>
+            <button class="suggestion-card" data-prompt="Summarize this PDF document and extract all key findings as bullet points">
+              <div class="suggestion-icon">📄</div>
+              <div class="suggestion-body">
+                <strong>Summarize Document</strong>
+                <span>PDF, Word, Excel analysis</span>
+              </div>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <div id="messages" class="messages" role="list"></div>
+    </div>
+
+    <!-- ── INPUT AREA ─────────────────────────────── -->
+    <div class="input-area-wrap">
+      <div id="file-preview-bar" class="file-preview-bar" style="display:none">
+        <div id="file-pill" class="file-pill">
+          <span id="file-pill-icon">📄</span>
+          <span id="file-pill-name">file.pdf</span>
+          <button id="btn-remove-file" class="file-pill-remove" aria-label="Remove file">✕</button>
+        </div>
+      </div>
+
+      <div class="input-area">
+        <div id="drop-overlay" class="drop-overlay" aria-hidden="true">
+          <div class="drop-overlay-inner">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <span>Drop file here</span>
+          </div>
+        </div>
+
+        <textarea id="user-input" class="user-input" placeholder="Ask Horizon anything…" rows="1" aria-label="Message input"></textarea>
+
+        <div class="input-toolbar">
+          <div class="input-toolbar-left">
+            <button id="btn-attach" class="toolbar-btn" title="Attach file" aria-label="Attach file">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
+              </svg>
+            </button>
+            <input type="file" id="file-input" style="display:none" accept=".pdf,.xlsx,.xls,.csv,.docx,.doc,.txt,.md,.json,.png,.jpg,.jpeg,.webp,.gif,.py,.js,.sql" aria-hidden="true" />
+
+            <button id="btn-model-select" class="model-select-btn" aria-haspopup="listbox" aria-expanded="false" aria-label="Select AI model">
+              <span class="model-select-dot" id="model-dot"></span>
+              <span id="model-select-label">Llama 3.3 70B</span>
+              <svg class="model-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="18 15 12 9 6 15"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="input-toolbar-right">
+            <span id="char-count" class="char-count"></span>
+            <button id="btn-send" class="send-btn" aria-label="Send message" disabled>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="input-disclaimer">Horizon can make mistakes. Verify important information.</div>
+    </div>
+  </main>
+</div>
+
+<!-- MODEL POPUP -->
+<div id="model-popup" class="model-popup" role="listbox" aria-label="Select AI model" style="display:none">
+  <div class="model-popup-header">Select Model</div>
+  <div id="model-popup-content" class="model-popup-content"></div>
+</div>
+
+<!-- MOBILE OVERLAY -->
+<div id="sidebar-overlay" class="sidebar-overlay" aria-hidden="true"></div>
+
+<script src="js/sidebar.js"></script>
+<script src="js/fileUpload.js"></script>
+<script src="js/chat.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
