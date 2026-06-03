@@ -54,7 +54,7 @@ const Sidebar = (() => {
             <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
           </svg>
           <span>${escHtml(c.title)}</span>`;
-        item.addEventListener('click', () => window.Chat && Chat.loadConversation(c.id));
+        item.addEventListener('click', () => { if (typeof Chat !== 'undefined') Chat.loadConversation(c.id); });
         el.appendChild(item);
       });
     });
