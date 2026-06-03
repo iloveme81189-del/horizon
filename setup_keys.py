@@ -149,6 +149,20 @@ def main():
         print(f"  [OK] GROQ_API_KEY encrypted and saved to .env\n")
         any_updated = True
 
+    # ── Z.ai (Zhipu) ──────────────────────────────────────────
+    print("  --- Z.ai (Zhipu GLM) API Key --------------------------")
+    zhipu = prompt_api_key(
+        "Zhipu API Key",
+        "ZHIPU_API_KEY",
+        "https://open.bigmodel.cn/usercenter/apikeys",
+        env.get("ZHIPU_API_KEY", "")
+    )
+    if zhipu:
+        enc = encrypt_value(fernet, zhipu)
+        write_env_key("ZHIPU_API_KEY", enc)
+        print(f"  [OK] ZHIPU_API_KEY encrypted and saved to .env\n")
+        any_updated = True
+
     # ── Done ──────────────────────────────────────────────────
     print()
     if any_updated:

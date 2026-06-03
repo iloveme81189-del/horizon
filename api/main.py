@@ -53,12 +53,12 @@ except ImportError as e:
     IMPORT_ERROR = str(e)
 
 def get_swarm_client():
-    groq_key = os.environ.get("GROQ_API_KEY", "")
-    if not groq_key:
-        raise ValueError("GROQ_API_KEY is not set.")
+    zhipu_key = os.environ.get("ZHIPU_API_KEY", "")
+    if not zhipu_key:
+        raise ValueError("ZHIPU_API_KEY is not set.")
     client = OpenAI(
-        base_url="https://api.groq.com/openai/v1",
-        api_key=groq_key
+        base_url="https://open.bigmodel.cn/api/paas/v4/",
+        api_key=zhipu_key
     )
     return Swarm(client=client)
 
@@ -107,7 +107,7 @@ def swarm_chat():
 
     data = request.json or {}
     messages = data.get("messages", [])
-    model = data.get("model", "llama-3.3-70b-versatile")
+    model = "glm-4" # Force Zhipu model
     
     formatted_messages = [{"role": m["role"], "content": m["content"]} for m in messages if m["role"] in ["user", "assistant", "system"]]
 
