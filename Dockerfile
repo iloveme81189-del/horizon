@@ -6,6 +6,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install Node 18 and Python 3.12
 RUN apt-get update && apt-get install -y \
     curl \
+    git \
     python3.11 \
     python3-pip \
     python3.11-venv \
