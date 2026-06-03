@@ -101,8 +101,11 @@ const Chat = (() => {
   });
 
   inputEl.addEventListener('keydown', e => {
-    // Capture Ctrl+Enter or Cmd+Enter to send. Normal enter is new line.
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); sendMessage(); }
+    // Enter to send, Shift+Enter for new line
+    if (e.key === 'Enter' && !e.shiftKey) { 
+      e.preventDefault(); 
+      sendMessage(); 
+    }
   });
 
   sendBtn.addEventListener('click', sendMessage);
