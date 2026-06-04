@@ -241,7 +241,7 @@ svg { flex-shrink: 0; }
   pointer-events: none; /* Let clicks pass through the wrap */
 }
 .input-container-inner { max-width: 820px; margin: 0 auto; pointer-events: auto; }
-.file-preview-bar { padding: 0 0 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+.file-preview-bar { padding: 0 0 10px; display: flex; gap: 8px; flex-wrap: wrap; pointer-events: auto; }
 .file-pill {
   display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 20px;
   background: rgba(255,140,0,0.1); border: 1px solid rgba(255,140,0,0.3);
@@ -251,6 +251,7 @@ svg { flex-shrink: 0; }
 .file-pill-remove:hover { background: var(--danger); color: #fff; }
 
 .input-area {
+  pointer-events: auto; /* Re-enable clicks inside the floating pill */
   background: rgba(9, 9, 11, 0.85); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px;
   transition: border-color var(--trans), box-shadow var(--trans), transform var(--trans);
@@ -299,7 +300,7 @@ svg { flex-shrink: 0; }
 .send-btn:disabled { background: var(--border-solid); color: var(--text-muted); cursor: not-allowed; box-shadow: none; opacity: 0.5; }
 .send-btn:not(:disabled):hover { transform: scale(1.05); box-shadow: var(--glow); }
 
-.input-disclaimer { text-align: center; font-size: 12px; color: var(--text-muted); padding-top: 12px; font-weight: 500; }
+.input-disclaimer { text-align: center; font-size: 12px; color: var(--text-muted); padding-top: 12px; font-weight: 500; pointer-events: auto; }
 
 /* ── MODEL POPUP ─────────────────────────── */
 .model-popup {
