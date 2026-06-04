@@ -13,29 +13,29 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 const app  = express();
 const PORT = process.env.PORT || 3001;
 
-// ── Middleware ────────────────────────────────────────────────
+// ── Middleware (CORS first) ───────────────────────────────────
 app.use(cors());
+
+// ── Python FastAPI Proxies (MUST be before body-parser) ──────
+const pythonProxy = createProxyMiddleware({
+  target: 'http://127.0.0.1:8001',
+  changeOrigin: true,
+});
+app.use('/api/swarm', pythonProxy);
+app.use('/api/chat', pythonProxy); 
+app.use('/api/gemini-eval', pythonProxy);
+app.use('/api/n8n/webhook', pythonProxy);
+
+// ── Body Parsers ──────────────────────────────────────────────
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ extended: true, limit: '100mb' }));
 
 // ── Static frontend ───────────────────────────────────────────
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ── API routes ────────────────────────────────────────────────
-// app.use('/api/chat',         chatRoutes); // Replaced by Python proxy
+// ── Native API routes ─────────────────────────────────────────
 app.use('/api/memory',       memoryRoutes);
-app.use('/api/upload',       uploadRoutes);   // Native Node.js file upload (PDF, Excel, Word, Images)
-// app.use('/api/n8n/webhook',  n8nRoutes); // Replaced by Python proxy
-
-// ── Python FastAPI Proxies (LLM Router & Memory) ────────────
-const pythonProxy = createProxyMiddleware({
-  target: 'http://127.0.0.1:8001',
-  changeOrigin: true,
-});
-app.use('/api/swarm', pythonProxy);
-app.use('/api/chat', pythonProxy); // Route all chat directly to Python
-app.use('/api/gemini-eval', pythonProxy);
-app.use('/api/n8n/webhook', pythonProxy);
+app.use('/api/upload',       uploadRoutes);
 
 // ── Health check ──────────────────────────────────────────────
 app.get('/health', (_req, res) =>
