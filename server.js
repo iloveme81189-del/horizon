@@ -52,8 +52,16 @@ app.get('/api/models', (_req, res) => {
         icon: '⚡',
         models: [
           { id: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B',   tag: 'Fast',    desc: 'Horizon Rapid — ultra-fast versatile coding' },
-          { id: 'mixtral-8x7b-32768',      label: 'Mixtral 8x7B',    tag: 'Long',    desc: 'Horizon Deep — 32K context document analysis' },
+          { id: 'gemma2-9b-it',            label: 'Gemma 2 9B',      tag: 'Creative', desc: 'Horizon Deep — Highly creative Google model on Groq' },
           { id: 'llama-3.1-8b-instant',    label: 'Llama 3.1 8B',    tag: 'Instant', desc: 'Horizon Flash — fastest responses' }
+        ]
+      },
+      {
+        id: 'gemini',
+        label: 'Google',
+        icon: '✨',
+        models: [
+          { id: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro', tag: 'Reliable', desc: 'Horizon Core — 2M context window, highly reliable fallback' }
         ]
       },
       {
@@ -61,15 +69,8 @@ app.get('/api/models', (_req, res) => {
         label: 'NVIDIA',
         icon: '🟢',
         models: [
-          { id: 'nvidia/nemotron-3-ultra-550b', label: 'Nemotron-3 Ultra 550B', tag: 'Architect', desc: 'Horizon Architect — enterprise system design & GPU computing' }
-        ]
-      },
-      {
-        id: 'openai',
-        label: 'OpenAI',
-        icon: '🧠',
-        models: [
-          { id: 'openai/gpt-oss-120b', label: 'GPT-OSS 120B', tag: 'Sovereign', desc: 'Horizon Sovereign — deep reasoning & agentic problem solving' }
+          { id: 'nvidia/nemotron-4-340b-instruct', label: 'Nemotron-4 340B', tag: 'Architect', desc: 'Horizon Architect — enterprise system design & GPU computing' },
+          { id: 'meta/llama3-70b-instruct', label: 'Llama 3 70B (NIM)', tag: 'Sovereign', desc: 'Horizon Sovereign — deep reasoning & agentic problem solving via NVIDIA' }
         ]
       }
     ]

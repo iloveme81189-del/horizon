@@ -53,10 +53,37 @@ class LLMRouter:
             else:
                 return adapter.chat(messages)
         except Exception as exc:
-            # Graceful fallback to Groq
-            print(f"LLM error with {model}: {exc} → falling back to Groq")
-            try:
-                return self.adapters["groq"].chat(messages)
-            except Exception as fallback_exc:
-                print(f"Fallback Groq LLM error: {fallback_exc}")
-                return {"content": f"Critical Error: Both primary and fallback LLMs failed. {exc} // {fallback_exc}", "usage": {}, "model": "error"}
+            print(f"LLM error with {model}: {exc} → executing multi-tier fallback")
+            errors = [f"Primary ({model}): {exc}"]
+            
+            # Fallback 1: Gemini (Highly reliable, 2M context window)
+            if adapter != self.adapters.get("gemini"):
+                try:
+                    print("Falling back to Gemini...")
+                    import inspect
+                    if "model" in inspect.signature(self.adapters["gemini"].chat).parameters:
+                        return self.adapters["gemini"].chat(messages, model="gemini-1.5-pro")
+                    else:
+                        return self.adapters["gemini"].chat(messages)
+                except Exception as e2:
+                    print(f"Gemini fallback failed: {e2}")
+                    errors.append(f"Gemini: {e2}")
+            
+            # Fallback 2: Groq (Lightning fast)
+            if adapter != self.adapters.get("groq"):
+                try:
+                    print("Falling back to Groq...")
+                    import inspect
+                    if "model" in inspect.signature(self.adapters["groq"].chat).parameters:
+                        return self.adapters["groq"].chat(messages, model="llama-3.3-70b-versatile")
+                    else:
+                        return self.adapters["groq"].chat(messages)
+                except Exception as e3:
+                    print(f"Groq fallback failed: {e3}")
+                    errors.append(f"Groq: {e3}")
+                    
+            return {
+                "content": "Critical Error: All configured LLM backends failed. \n\n**Error Log:**\n" + "\n".join(f"- {e}" for e in errors),
+                "usage": {},
+                "model": "error"
+            }
