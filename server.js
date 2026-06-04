@@ -69,7 +69,7 @@ app.get('/api/models', (_req, res) => {
         label: 'NVIDIA',
         icon: '🟢',
         models: [
-          { id: 'nvidia/nemotron-4-340b-instruct', label: 'Nemotron-4 340B', tag: 'Architect', desc: 'Horizon Architect — enterprise system design & GPU computing' },
+          { id: 'nvidia/nemotron-3-ultra-550b-a55', label: 'Nemotron-3 550B', tag: 'Architect', desc: 'Horizon Architect — enterprise system design & GPU computing' },
           { id: 'meta/llama3-70b-instruct', label: 'Llama 3 70B (NIM)', tag: 'Sovereign', desc: 'Horizon Sovereign — deep reasoning & agentic problem solving via NVIDIA' }
         ]
       }
