@@ -1,0 +1,59 @@
+================================================================
+HORIZON MULTI-AGENT WORKFLOW — USAGE GUIDE
+================================================================
+Written for: Beginners & 12th Grade Coding Students
+
+Hi! If you are reading this, you have a powerful "AI Company" running on your computer. 
+Instead of talking to just ONE AI (like ChatGPT), you now have a team of 6 AI agents that talk to each other to solve big problems for you.
+
+Here is your team:
+1. The Manager (Llama 3.3) - Breaks your big problem into small steps.
+2. The Developer (NVIDIA Nemotron) - Writes Python code to scrape websites and analyze data.
+3. Quality Assurance (Mixtral 8x7B) - Checks the developer's code for bugs.
+4. The CEO (GPT-OSS-120B) - Writes a final business report based on the data.
+5. The Brutal Tester (GPT-OSS-120B) - Tries to find flaws in the CEO's logic.
+6. The Report Validator (Llama 3.1) - Cleans up the final text and saves it to Google Drive.
+
+----------------------------------------------------------------
+HOW TO USE IT (STEP-BY-STEP)
+----------------------------------------------------------------
+
+Step 1: Open n8n
+- Think of n8n as the "conveyor belt" in a factory. It moves data from one AI to the next.
+- Open your browser and go to http://localhost:5678
+- Open the "Horizon Multi-Agent Business Workflow".
+
+Step 2: Give the Manager a Task
+- On the far left of your screen, double-click the red "Webhook (Trigger)" node.
+- A menu will pop up. Click the button that says "Listen for Test Event".
+- n8n is now waiting for you to send it a task. You will see a "Test URL" on the screen (it looks something like https://horizon-iw1o.onrender.com/api/n8n/webhook).
+
+Step 3: Send Your Task
+- You can send a task to your AI team using a tool like Postman, or simply using your computer's terminal (Command Prompt).
+- Open a new terminal window and type this exact command, but change the text inside "input_data" to whatever you want the AI to do!
+
+Example Command (For Windows Command Prompt):
+curl -X POST https://horizon-iw1o.onrender.com/api/n8n/webhook -H "Content-Type: application/json" -d "{\"input_data\": \"I want to start a shoe company. Find out the top 3 shoe brands right now, write a Python script to scrape their prices, and write a business plan on how I can beat them.\"}"
+
+Step 4: Watch the Magic Happen!
+- Go back to your n8n browser tab. 
+- You will see a green checkmark appear on the Webhook node!
+- Then, the Manager node will light up, then the Developer, then QA, all the way to the end.
+- The AI agents are literally talking to each other and doing your homework.
+
+Step 5: Check your Google Drive
+- Once the very last node (Upload to Google Drive) gets a green checkmark, open your Google Drive.
+- You will find a brand new text file named with today's date (e.g. 2026-06-05-Business-Report.md).
+- Open it up! It contains the final, brutally-tested business report written by the CEO AI.
+
+----------------------------------------------------------------
+HOW TO ADD YOUR OWN CODE (The Developer Scripts)
+----------------------------------------------------------------
+Sometimes the Developer AI will write a Python script (like a web scraper) and put it in the report. 
+If you want to run that code:
+1. Copy the python code from the report.
+2. Open VS Code or Notepad, paste the code, and save it as "scraper.py".
+3. Open your terminal and run: python scraper.py
+4. The script will run and collect the data you asked for!
+
+You can then take that data and feed it back into the Webhook to let the CEO AI analyze it!

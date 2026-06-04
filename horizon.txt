@@ -1,0 +1,43 @@
+================================================================
+HORIZON CHATBOT & CLOUD DEPLOYMENT GUIDE
+================================================================
+
+Why is this useful for your Horizon Chatbot?
+----------------------------------------------------------------
+Right now, Horizon is a beautiful frontend chatbot on your screen. By plugging this n8n multi-agent system into Horizon's backend, you are giving your chatbot "Superpowers".
+
+Normally, a chatbot just answers questions one-by-one. But with this system:
+1. Memory: We swapped out your old database for Pinecone (Cloud Vector Database). This means Horizon will remember what you talked about yesterday, last week, and last month. Even if you restart your computer!
+2. Delegation: If you type "Horizon, generate a Q3 financial report" into your chatbot, Horizon doesn't have to guess. It will quietly send that prompt to the n8n webhook behind the scenes. 
+3. Automation: n8n will wake up, spin up 6 different AI models (Nemotron, GPT-OSS, Llama), do all the heavy lifting, write the report, and upload it to your Google Drive. 
+4. Delivery: Horizon will then reply to you in the chat: "I have finished analyzing the data and uploaded the report to your Google Drive!"
+
+How to Deploy to Render (Use it Anywhere!)
+----------------------------------------------------------------
+You wanted to be able to use this chatbot from your phone, a coffee shop, or your office, without needing your local Windows computer turned on. 
+
+We have already set up the "Auto-Deploy" pipeline using GitHub and Render! Here is how it works:
+
+1. The Code Lives on GitHub:
+   Every time we make a change to your code, we type `git push origin main`. This sends your code up to GitHub.
+
+2. Render is Watching GitHub:
+   Render.com is a cloud server. It is linked to your GitHub account. Whenever it sees that you pushed new code, it automatically downloads it and builds your server for you. 
+
+3. Live URL:
+   Because your backend is hosted on Render, you have a public URL: `https://horizon-iw1o.onrender.com`
+   This is why the n8n webhook uses that URL instead of `localhost`. 
+   
+4. How to update it in the future:
+   If you ever want to change a prompt, add a new AI model, or fix a bug, just change the code on your computer, save it, and run these three commands in your terminal:
+   - git add .
+   - git commit -m "my new update"
+   - git push origin main
+   
+   That's it! Wait 2 minutes, and your live cloud chatbot will automatically update. You don't need to touch Render at all.
+
+5. API Keys in the Cloud:
+   Because we do not upload the `.env` file to GitHub (to protect your passwords from hackers), Render does not know your API keys automatically. 
+   Whenever you add a NEW api key (like NVIDIA or Pinecone), you must log into Render.com, go to your Web Service -> Environment Variables, and paste the key there. 
+
+Now, whether you are on your laptop or your iPhone, you can go to your chatbot's URL, type a command, and your cloud server will trigger your n8n AI workforce!
