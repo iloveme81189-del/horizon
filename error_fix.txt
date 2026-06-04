@@ -1,0 +1,33 @@
+# HORIZON - ERROR FIX LOG
+
+This document tracks the major bugs encountered and resolved during the deployment and scaling phase.
+
+---
+
+### 1. 504 Gateway Timeout (FastAPI Event Loop Blocked)
+**Symptoms:** Render backend crashed with 504 Gateway Timeouts when multiple messages or long-running Groq/Gemini calls occurred. The entire server locked up.
+**Root Cause:** Synchronous LLM calls were blocking the main asyncio event loop in FastAPI (`api/app.py`). Node frontend POST proxy requests were hanging endlessly.
+**Fix:** Wrapped the `router.chat(payload)` call in `run_in_threadpool()` inside `api/app.py`, allowing the main ASGI event loop to breathe while Python handles synchronous network requests to Groq/Gemini/NVIDIA.
+
+### 2. Frontend UI Hung (SSE Stream Parsing Mismatch)
+**Symptoms:** The backend processed the response instantly (1.5 seconds), but the UI text bubble remained completely empty and the "loading" animation spun infinitely.
+**Root Cause:** The `chat.js` frontend exclusively expected a Server-Sent Events (SSE) data stream format (`data: {...}`). When FastAPI fell back to returning standard JSON (`application/json`), the JavaScript `while(true)` stream reader completely ignored the payload.
+**Fix:** Modified `chat.js` to inspect the `Content-Type` header. If it detects `application/json`, it immediately parses the JSON and populates the text bubble rather than hanging on a non-existent stream.
+
+### 3. Uploaded Files Ignored by LLM
+**Symptoms:** Files could be uploaded and the UI showed the "file pill", but the AI responded as if it hadn't read the file context.
+**Root Cause:** The JSON payload sent `fileContext`, but `api/utils/llm_router.py` only extracted the `messages` array and discarded the `fileContext` entirely before sending it to the adapters.
+**Fix:** Updated `LLMRouter` to extract `fileContext` and forcefully inject it into the `content` of the final user message in the array before passing it to the LLM.
+
+### 4. Floating UI Unclickable (God Mode Overhaul)
+**Symptoms:** User input box and disclaimer became entirely unclickable after the premium UI overhaul.
+**Root Cause:** To allow clicks to pass through the empty space around the floating input area, `pointer-events: none` was applied to `.input-area-wrap`. However, this disabled all pointer events for the child elements.
+**Fix:** Added `pointer-events: auto` to `.input-area`, `.file-preview-bar`, and `.input-disclaimer` inside `main.css` to restore interactivity while preserving the floating design.
+
+### 5. Pinecone Blocking Sync Error
+**Symptoms:** Vector DB document uploads hung the server.
+**Root Cause:** `PineconeVectorStore.add_documents` is a blocking call.
+**Fix:** Converted `NotebookStore` to use `await aadd_documents()` and made the method asynchronous.
+
+---
+*Last Updated: 2026-06*
