@@ -53,8 +53,45 @@ const Sidebar = (() => {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
           </svg>
-          <span>${escHtml(c.title)}</span>`;
-        item.addEventListener('click', () => { if (typeof Chat !== 'undefined') Chat.loadConversation(c.id); });
+          <span style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escHtml(c.title)}</span>
+          <button class="delete-chat-btn" title="Delete Chat" aria-label="Delete chat">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+            </svg>
+          </button>
+        `;
+        
+        // Load chat on click (unless delete button was clicked)
+        item.addEventListener('click', (e) => { 
+          if (e.target.closest('.delete-chat-btn')) return;
+          if (typeof Chat !== 'undefined') Chat.loadConversation(c.id); 
+        });
+        
+        // Delete chat logic
+        const delBtn = item.querySelector('.delete-chat-btn');
+        delBtn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          if (confirm('Delete this chat thread forever?')) {
+            // Remove from local storage
+            let saved = load();
+            saved = saved.filter(chat => chat.id !== c.id);
+            save(saved);
+            
+            // Try to delete from Drive if enabled
+            try {
+              await fetch(`/api/memory/${c.id}`, { method: 'DELETE' });
+            } catch (err) { console.warn("Failed to delete from Drive", err); }
+            
+            // Re-render sidebar
+            render(activeCid === c.id ? null : activeCid);
+            
+            // If the deleted chat was currently open, start a new chat
+            if (activeCid === c.id && typeof Chat !== 'undefined') {
+              Chat.newChat();
+            }
+          }
+        });
+        
         el.appendChild(item);
       });
     });
