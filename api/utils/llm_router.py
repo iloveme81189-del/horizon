@@ -25,6 +25,9 @@ class LLMRouter:
             return self.adapters["nvidia_nemotron"], model
         elif "gpt-oss" in model:
             return self.adapters["nvidia_gpt"], model
+        # Explicitly route Groq models
+        elif "llama" in model or "mixtral" in model or "gemma" in model:
+            return self.adapters["groq"], model
             
         if preferred in self.adapters:
             return self.adapters[preferred], model
