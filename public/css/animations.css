@@ -1,73 +1,85 @@
+/* ── EMIL KOWALSKI SPRING EASINGS ──────────── */
+:root {
+  --ek-spring: cubic-bezier(0.32, 0.72, 0, 1);
+  --ek-spring-bouncy: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --ek-spring-smooth: cubic-bezier(0.25, 1, 0.5, 1);
+  --ek-spring-snappy: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 /* ── KEYFRAMES ───────────────────────────── */
-@keyframes floatLogo{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-@keyframes typingBounce{0%,80%,100%{transform:scale(0.6);opacity:.4}40%{transform:scale(1);opacity:1}}
-@keyframes msgIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-@keyframes popupIn{from{opacity:0;transform:scale(.95) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
-@keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
-@keyframes spin{to{transform:rotate(360deg)}}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-@keyframes slideInLeft{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:translateX(0)}}
+@keyframes floatLogo { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes typingBounce { 0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; } 40% { transform: scale(1); opacity: 1; } }
+@keyframes msgIn { from { opacity: 0; transform: translateY(12px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes popupIn { from { opacity: 0; transform: scale(0.95) translateY(8px); filter: blur(4px); } to { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); } }
+@keyframes shimmer { 0% { background-position: -400px 0; } 100% { background-position: 400px 0; } }
+@keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.96); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeIn { from { opacity: 0; filter: blur(2px); } to { opacity: 1; filter: blur(0); } }
+@keyframes slideInLeft { from { opacity: 0; transform: translateX(-16px) scale(0.98); } to { opacity: 1; transform: translateX(0) scale(1); } }
+@keyframes floatUpFade { from { opacity: 0; transform: translateY(20px); filter: blur(8px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
 
 /* ── LOADING SHIMMER ─────────────────────── */
-.skeleton{
-  background:linear-gradient(90deg,var(--border) 25%,var(--bg) 50%,var(--border) 75%);
-  background-size:400px 100%;animation:shimmer 1.4s infinite;border-radius:6px;
+.skeleton {
+  background: linear-gradient(90deg, var(--border) 25%, rgba(255,255,255,0.02) 50%, var(--border) 75%);
+  background-size: 400px 100%;
+  animation: shimmer 1.4s var(--ek-spring-smooth) infinite;
+  border-radius: 6px;
 }
 
 /* ── SPINNER ─────────────────────────────── */
-.spinner{
-  width:18px;height:18px;border:2px solid var(--border);
-  border-top-color:var(--p);border-radius:50%;animation:spin .7s linear infinite;
+.spinner {
+  width: 18px; height: 18px; border: 2px solid var(--border);
+  border-top-color: var(--saffron); border-radius: 50%;
+  animation: spin 0.6s var(--ek-spring-smooth) infinite;
 }
 
 /* ── SEND BUTTON ANIMATE ─────────────────── */
-.send-btn.sending svg{animation:pulse .8s infinite}
+.send-btn.sending svg { animation: pulse 0.8s var(--ek-spring-smooth) infinite; }
 
 /* ── HISTORY ITEM SLIDE ──────────────────── */
-.history-item{animation:slideInLeft .2s ease both}
+.history-item { animation: slideInLeft 0.35s var(--ek-spring) both; }
 
-/* ── SUGGESTION CARD STAGGER ─────────────── */
-.suggestion-card:nth-child(1){animation:fadeIn .4s ease .05s both}
-.suggestion-card:nth-child(2){animation:fadeIn .4s ease .10s both}
-.suggestion-card:nth-child(3){animation:fadeIn .4s ease .15s both}
-.suggestion-card:nth-child(4){animation:fadeIn .4s ease .20s both}
+/* ── SUGGESTION CARD STAGGER (Linear inspired) */
+.suggestion-card { animation: floatUpFade 0.6s var(--ek-spring) both; }
+.suggestion-card:nth-child(1) { animation-delay: 0.05s; }
+.suggestion-card:nth-child(2) { animation-delay: 0.10s; }
+.suggestion-card:nth-child(3) { animation-delay: 0.15s; }
+.suggestion-card:nth-child(4) { animation-delay: 0.20s; }
 
 /* ── CURSOR BLINK (streaming) ────────────── */
-.streaming-cursor::after{
-  content:'▋';animation:pulse .7s infinite;
-  color:var(--p);font-weight:300;margin-left:1px;
+.streaming-cursor::after {
+  content: '▋'; animation: pulse 0.8s var(--ek-spring-smooth) infinite;
+  color: var(--saffron); font-weight: 300; margin-left: 2px;
 }
 
 /* ── FILE PILL ANIMATE ───────────────────── */
-.file-pill{animation:fadeIn .2s ease}
+.file-pill { animation: popupIn 0.3s var(--ek-spring) both; }
 
 /* ── TOAST ───────────────────────────────── */
-.toast{
-  position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
-  background:var(--navy);color:#fff;padding:10px 20px;border-radius:24px;
-  font-size:13px;font-weight:500;z-index:9999;
-  animation:fadeIn .2s ease;box-shadow:0 4px 20px rgba(0,0,0,.25);
-  pointer-events:none;
+.toast {
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+  background: var(--surface-solid); color: var(--text); padding: 12px 24px; border-radius: 24px;
+  font-size: 13px; font-weight: 500; z-index: 9999;
+  border: 1px solid var(--border); box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  animation: floatUpFade 0.4s var(--ek-spring) both; pointer-events: none;
 }
-[data-theme="dark"] .toast{background:var(--surface);border:1px solid var(--border);color:var(--text)}
 
 /* ── SPRING & ARTIFACT SLIDE KEYFRAMES ── */
 @keyframes slideInRight {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
 }
 @keyframes springIn {
-  0% { transform: scale(0.92) translateY(10px); opacity: 0; }
-  60% { transform: scale(1.02) translateY(-2px); opacity: 0.8; }
-  100% { transform: scale(1) translateY(0); opacity: 1; }
+  0% { transform: scale(0.95) translateY(12px); opacity: 0; filter: blur(4px); }
+  100% { transform: scale(1) translateY(0); opacity: 1; filter: blur(0); }
 }
 
 .artifact-slide-in {
-  animation: slideInRight 0.4s var(--smooth-ease) forwards;
+  animation: slideInRight 0.5s var(--ek-spring) forwards;
 }
 
 .message.user, .message.ai {
-  animation: springIn 0.5s var(--smooth-ease) forwards;
+  animation: springIn 0.5s var(--ek-spring) forwards;
 }
+
 
