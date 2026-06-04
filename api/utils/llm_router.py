@@ -33,6 +33,14 @@ class LLMRouter:
     def chat(self, request_data: dict):
         adapter, model = self.select(request_data)
         messages = request_data.get("messages", [])
+        file_context = request_data.get("fileContext", "")
+        
+        if file_context and str(file_context).strip():
+            # Inject file context into the last user message
+            if messages and messages[-1]["role"] == "user":
+                messages[-1]["content"] += f"\n\n--- FILE CONTEXT ---\n{file_context}\n--------------------"
+            else:
+                messages.append({"role": "user", "content": f"--- FILE CONTEXT ---\n{file_context}\n--------------------"})
         
         try:
             # If the adapter takes a model param (like Nvidia), pass it. Otherwise just messages.
