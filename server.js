@@ -7,7 +7,7 @@ const path       = require('path');
 const chatRoutes   = require('./routes/chat');
 const memoryRoutes = require('./routes/memory');
 const uploadRoutes = require('./routes/upload');
-const n8nRoutes    = require('./routes/n8n');
+// n8n webhook proxied to Python
 const { createProxyMiddleware } = require('http-proxy-middleware');
 
 const app  = express();
@@ -25,7 +25,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // app.use('/api/chat',         chatRoutes); // Replaced by Python proxy
 app.use('/api/memory',       memoryRoutes);
 app.use('/api/upload',       uploadRoutes);   // Native Node.js file upload (PDF, Excel, Word, Images)
-app.use('/api/n8n/webhook',  n8nRoutes);      // n8n automation webhook
+// app.use('/api/n8n/webhook',  n8nRoutes); // Replaced by Python proxy
 
 // ── Python FastAPI Proxies (LLM Router & Memory) ────────────
 const pythonProxy = createProxyMiddleware({
@@ -35,6 +35,7 @@ const pythonProxy = createProxyMiddleware({
 app.use('/api/swarm', pythonProxy);
 app.use('/api/chat', pythonProxy); // Route all chat directly to Python
 app.use('/api/gemini-eval', pythonProxy);
+app.use('/api/n8n/webhook', pythonProxy);
 
 // ── Health check ──────────────────────────────────────────────
 app.get('/health', (_req, res) =>

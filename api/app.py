@@ -50,6 +50,38 @@ async def chat_endpoint(request: Request):
     # Keep output compatible with what Node.js proxy or frontend expects
     return {"role": "assistant", "content": llm_result["content"]}
 
+@app.post("/api/n8n/webhook")
+async def n8n_webhook(request: Request):
+    """
+    Webhook strictly formatted for n8n. 
+    Accepts: { "message": "...", "model": "..." }
+    Returns: { "reply": "...", "model": "..." }
+    """
+    try:
+        payload = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid JSON payload")
+        
+    message = payload.get("message", "")
+    model = payload.get("model", "llama-3.3-70b-versatile")
+    
+    # Format payload for LLMRouter
+    router_payload = {
+        "model": model,
+        "messages": [
+            {"role": "system", "content": "You are Horizon, an elite AI assistant created by Dr. Hari Krishna. You are responding to a request forwarded from an n8n automation workflow. Respond concisely and precisely. Format code with markdown. Never emit placeholders."},
+            {"role": "user", "content": message}
+        ]
+    }
+    
+    llm_result = router.chat(router_payload)
+    
+    # n8n expects "reply"
+    return {
+        "reply": llm_result["content"],
+        "model": llm_result["model"]
+    }
+
 @app.post("/api/gemini-eval")
 async def gemini_eval(request: Request):
     """
