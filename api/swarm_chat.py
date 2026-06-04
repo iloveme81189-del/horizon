@@ -26,39 +26,68 @@ def get_swarm_client():
     )
     return Swarm(client=client)
 
-# Define Agents
-def transfer_to_coder():
-    return coding_agent
+# ── Specialized Agent Handoff Functions ──
+def delegate_to_frontend():
+    return frontend_agent
 
-def transfer_to_data_analyst():
-    return data_agent
+def delegate_to_backend():
+    return backend_agent
 
-triage_agent = None
-coding_agent = None
-data_agent = None
+def delegate_to_data_science():
+    return data_science_agent
+
+def delegate_to_devops():
+    return devops_agent
+
+ceo_agent = None
+frontend_agent = None
+backend_agent = None
+data_science_agent = None
+devops_agent = None
 
 if SWARM_AVAILABLE:
-    triage_agent = Agent(
-        name="Triage Agent",
-        instructions="""You are the Horizon Swarm Orchestrator. 
-        Determine what the user needs. 
-        If they need complex code written or debugged, transfer to the Coder.
-        If they need data analyzed or charts generated, transfer to the Data Analyst.
-        If it's a simple greeting or general question, answer it directly in a highly professional tone.""",
-        functions=[transfer_to_coder, transfer_to_data_analyst]
+    ceo_agent = Agent(
+        name="Horizon CEO",
+        instructions="""You are Horizon, the CEO Node and orchestrator of this AI architecture.
+        Your mandate is to digest complex technical problems, orchestrate clean codebase architectures, and generate production-ready code with zero placeholders.
+        You manage a team of elite specialized bots. Determine what the user needs and delegate tasks to the appropriate sub-agents:
+        - For UI, React, HTML/CSS, or visual design, transfer to the Frontend UI/UX Bot.
+        - For server logic, APIs, database schemas, or Node.js/Python infrastructure, transfer to the Backend Architect Bot.
+        - For data processing, charts (Plotly), Pandas, or machine learning, transfer to the Data Science Bot.
+        - For deployment, terminal commands, Docker, or system configurations, transfer to the DevOps/Terminal Bot.
+        If the request is a simple greeting or general inquiry, answer it directly in a surgical, authoritative tone, completely stripped of polite filler.""",
+        functions=[delegate_to_frontend, delegate_to_backend, delegate_to_data_science, delegate_to_devops]
     )
 
-    coding_agent = Agent(
-        name="Coding Agent",
-        instructions="""You are an elite Software Engineer. 
-        Write highly optimized, clean, and production-ready code. 
-        Always wrap code in markdown blocks with the language specified.""",
+    frontend_agent = Agent(
+        name="Frontend UI/UX Bot",
+        instructions="""You are an elite Frontend UI/UX Architect.
+        Write highly optimized, clean, and production-ready frontend code (React, HTML, CSS, Next.js).
+        Never emit placeholders (e.g., // TODO). Every file must be fully copy-pasteable.
+        Always wrap code in markdown blocks with the language specified. Focus on responsive, modern design (Tailwind, animations)."""
     )
 
-    data_agent = Agent(
-        name="Data Analyst",
-        instructions="""You are a Data Scientist. 
-        Analyze data thoroughly. If the user asks for a chart, output a valid Plotly JSON configuration wrapped in a ```plotly markdown block.""",
+    backend_agent = Agent(
+        name="Backend Architect Bot",
+        instructions="""You are an elite Backend Software Engineer.
+        Write highly optimized, clean, and production-ready server code (Node.js, Express, Python, SQL, NoSQL).
+        Never emit placeholders (e.g., // TODO). Every file must be fully copy-pasteable.
+        Ensure secure API design and robust error handling."""
+    )
+
+    data_science_agent = Agent(
+        name="Data Science Bot",
+        instructions="""You are an elite Data Scientist.
+        Analyze data thoroughly. If the user asks for a chart, output a valid Plotly JSON configuration wrapped in a ```plotly markdown block.
+        Standardize unstructured content and open data analysis with a structural ledger."""
+    )
+
+    devops_agent = Agent(
+        name="DevOps/Terminal Bot",
+        instructions="""You are an elite DevOps and Systems Engineer.
+        Provide precise plain-English command directives targeting specific workspace modules.
+        Include explicit terminal commands in bash execution blocks.
+        Focus on CI/CD, Docker, Render deployments, and system security."""
     )
 
 @app.route('/api/swarm', methods=['POST'])
@@ -87,7 +116,7 @@ def swarm_chat():
             # *Note: In a true streaming Swarm setup, we would iterate the generator, but Swarm's stream=True returns a generator of dicts.*
             
             response = swarm_client.run(
-                agent=triage_agent,
+                agent=ceo_agent,
                 messages=formatted_messages,
                 model=model,
             )

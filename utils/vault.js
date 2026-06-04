@@ -55,7 +55,7 @@ function aesDecrypt(encValue, masterKey) {
 function decryptEnv() {
   const fernetKey = process.env.FERNET_KEY;
   const masterKey = process.env.MASTER_KEY;
-  const keys      = ['DEEPSEEK_API_KEY', 'GROQ_API_KEY'];
+  const keys      = ['DEEPSEEK_API_KEY', 'GROQ_API_KEY', 'OPENROUTER_API_KEY'];
 
   keys.forEach(k => {
     const val = process.env[k] || '';

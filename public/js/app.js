@@ -17,7 +17,7 @@
 // ── MODEL POPUP ────────────────────────────
 let selectedModel     = 'llama-3.3-70b-versatile';
 let modelsData        = [];
-const MODEL_DOT_COLORS = { deepseek: '#FF8C00', groq: '#a855f7' };
+const MODEL_DOT_COLORS = { deepseek: '#FF8C00', groq: '#a855f7', nvidia: '#76B900', openai: '#10B981' };
 
 const modelPopup  = document.getElementById('model-popup');
 const modelBtn    = document.getElementById('btn-model-select');
@@ -144,6 +144,144 @@ function applyTheme(dark) {
 }
 themeBtn.addEventListener('click', () => { isDark = !isDark; applyTheme(isDark); });
 applyTheme(isDark);
+
+// ── ARTIFACTS PANEL CONTROLLER ────────────────
+const artifactsPanel = document.getElementById('artifacts-panel');
+const btnArtifactClose = document.getElementById('btn-artifact-close');
+const btnArtifactFullscreen = document.getElementById('btn-artifact-fullscreen');
+const btnArtifactCopy = document.getElementById('btn-artifact-copy');
+const tabPreview = document.getElementById('tab-artifact-preview');
+const tabCode = document.getElementById('tab-artifact-code');
+const viewPreview = document.getElementById('view-artifact-preview');
+const viewCode = document.getElementById('view-artifact-code');
+
+if (btnArtifactClose) {
+  btnArtifactClose.addEventListener('click', () => artifactsPanel.classList.add('collapsed'));
+}
+
+if (btnArtifactFullscreen) {
+  btnArtifactFullscreen.addEventListener('click', () => {
+    artifactsPanel.classList.toggle('fullscreen');
+  });
+}
+
+if (btnArtifactCopy) {
+  btnArtifactCopy.addEventListener('click', () => {
+    const code = document.getElementById('artifact-code-display').textContent;
+    navigator.clipboard.writeText(code).then(() => {
+      btnArtifactCopy.classList.add('copied');
+      const originalSvg = btnArtifactCopy.innerHTML;
+      btnArtifactCopy.innerHTML = 'Copied!';
+      setTimeout(() => {
+        btnArtifactCopy.innerHTML = originalSvg;
+        btnArtifactCopy.classList.remove('copied');
+      }, 2000);
+    });
+  });
+}
+
+if (tabPreview && tabCode) {
+  tabPreview.addEventListener('click', () => {
+    tabPreview.classList.add('active');
+    tabCode.classList.remove('active');
+    viewPreview.classList.add('active');
+    viewCode.classList.remove('active');
+  });
+
+  tabCode.addEventListener('click', () => {
+    tabCode.classList.add('active');
+    tabPreview.classList.remove('active');
+    viewCode.classList.add('active');
+    viewPreview.classList.remove('active');
+  });
+}
+
+window.Artifacts = {
+  open: function(title, subtitle, codeText, lang) {
+    document.getElementById('artifact-title').textContent = title;
+    document.getElementById('artifact-subtitle').textContent = subtitle || 'HTML/SVG and Code Viewer';
+    
+    const codeDisplay = document.getElementById('artifact-code-display');
+    codeDisplay.className = 'language-' + (lang || 'html');
+    codeDisplay.textContent = codeText;
+    if (window.Prism) Prism.highlightElement(codeDisplay);
+    
+    const iframe = document.getElementById('artifact-iframe');
+    const plotlyContainer = document.getElementById('artifact-plotly');
+    
+    if (lang === 'plotly') {
+      iframe.style.display = 'none';
+      plotlyContainer.style.display = 'block';
+      plotlyContainer.innerHTML = '';
+      try {
+        const config = JSON.parse(codeText);
+        Plotly.newPlot(plotlyContainer, config.data || config, config.layout || {}, { responsive: true });
+      } catch (err) {
+        plotlyContainer.innerHTML = `<div class="error-toast">❌ Chart Error: ${err.message}</div>`;
+      }
+    } else {
+      plotlyContainer.style.display = 'none';
+      iframe.style.display = 'block';
+      
+      let htmlContent = codeText;
+      if (lang === 'svg' || codeText.trim().startsWith('<svg')) {
+        htmlContent = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <style>
+              body {
+                margin: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 100vh;
+                background: #0f172a;
+                color: #f1f5f9;
+                font-family: system-ui;
+              }
+              svg { max-width: 90vw; max-height: 90vh; }
+            </style>
+          </head>
+          <body>${codeText}</body>
+          </html>
+        `;
+      } else if (!codeText.includes('<html') && !codeText.includes('<body')) {
+        htmlContent = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <script src="https://cdn.tailwindcss.com"></script>
+            <style>
+              body { margin: 0; padding: 20px; font-family: system-ui, -apple-system, sans-serif; background-color: #fafafa; color: #111; }
+            </style>
+          </head>
+          <body>
+            ${codeText}
+          </body>
+          </html>
+        `;
+      }
+      
+      try {
+        const doc = iframe.contentWindow.document;
+        doc.open();
+        doc.write(htmlContent);
+        doc.close();
+      } catch (e) {
+        console.error("Failed to write to iframe", e);
+      }
+    }
+    
+    tabPreview.click();
+    artifactsPanel.classList.remove('collapsed');
+  },
+  close: function() {
+    artifactsPanel.classList.add('collapsed');
+  }
+};
 
 // ── INIT ───────────────────────────────────
 Sidebar.render(null);

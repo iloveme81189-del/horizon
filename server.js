@@ -6,6 +6,8 @@ const path       = require('path');
 
 const chatRoutes   = require('./routes/chat');
 const memoryRoutes = require('./routes/memory');
+const uploadRoutes = require('./routes/upload');
+const n8nRoutes    = require('./routes/n8n');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 
 const app  = express();
@@ -20,15 +22,16 @@ app.use(express.urlencoded({ extended: true, limit: '100mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ── API routes ────────────────────────────────────────────────
-app.use('/api/chat',   chatRoutes);
-app.use('/api/memory', memoryRoutes);
+app.use('/api/chat',         chatRoutes);
+app.use('/api/memory',       memoryRoutes);
+app.use('/api/upload',       uploadRoutes);   // Native Node.js file upload (PDF, Excel, Word, Images)
+app.use('/api/n8n/webhook',  n8nRoutes);      // n8n automation webhook
 
-// ── Python Flask Proxies ──────────────────────────────────────
+// ── Python Flask Proxy (Swarm only — upload handled natively) ─
 const pythonProxy = createProxyMiddleware({
   target: 'http://127.0.0.1:8001',
   changeOrigin: true,
 });
-app.use('/api/upload', pythonProxy);
 app.use('/api/swarm', pythonProxy);
 
 // ── Health check ──────────────────────────────────────────────
@@ -45,9 +48,25 @@ app.get('/api/models', (_req, res) => {
         label: 'Groq',
         icon: '⚡',
         models: [
-          { id: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B',   tag: 'Fast',    desc: 'Ultra-fast versatile model' },
-          { id: 'mixtral-8x7b-32768',      label: 'Mixtral 8x7B',    tag: 'Long',    desc: '32K context window' },
-          { id: 'llama-3.1-8b-instant',    label: 'Llama 3.1 8B',    tag: 'Instant', desc: 'Fastest responses' }
+          { id: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B',   tag: 'Fast',    desc: 'Horizon Rapid — ultra-fast versatile coding' },
+          { id: 'mixtral-8x7b-32768',      label: 'Mixtral 8x7B',    tag: 'Long',    desc: 'Horizon Deep — 32K context document analysis' },
+          { id: 'llama-3.1-8b-instant',    label: 'Llama 3.1 8B',    tag: 'Instant', desc: 'Horizon Flash — fastest responses' }
+        ]
+      },
+      {
+        id: 'nvidia',
+        label: 'NVIDIA',
+        icon: '🟢',
+        models: [
+          { id: 'nvidia/nemotron-3-ultra-550b', label: 'Nemotron-3 Ultra 550B', tag: 'Architect', desc: 'Horizon Architect — enterprise system design & GPU computing' }
+        ]
+      },
+      {
+        id: 'openai',
+        label: 'OpenAI',
+        icon: '🧠',
+        models: [
+          { id: 'openai/gpt-oss-120b', label: 'GPT-OSS 120B', tag: 'Sovereign', desc: 'Horizon Sovereign — deep reasoning & agentic problem solving' }
         ]
       }
     ]
@@ -62,9 +81,11 @@ app.get('*', (_req, res) =>
 // ── Start ─────────────────────────────────────────────────────
 app.listen(PORT, () => {
   console.log('\n╔══════════════════════════════════════╗');
-  console.log('║       🚀  HorizonAI  v1.0.0          ║');
+  console.log('║       🚀  HorizonAI  v2.0.0          ║');
   console.log('╠══════════════════════════════════════╣');
   console.log(`║  Local:   http://localhost:${PORT}      ║`);
   console.log('║  Status:  RUNNING                    ║');
+  console.log('║  Upload:  Node.js (native)           ║');
+  console.log('║  n8n:     /api/n8n/webhook            ║');
   console.log('╚══════════════════════════════════════╝\n');
 });

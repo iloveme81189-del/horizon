@@ -51,3 +51,23 @@
   pointer-events:none;
 }
 [data-theme="dark"] .toast{background:var(--surface);border:1px solid var(--border);color:var(--text)}
+
+/* ── SPRING & ARTIFACT SLIDE KEYFRAMES ── */
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+@keyframes springIn {
+  0% { transform: scale(0.92) translateY(10px); opacity: 0; }
+  60% { transform: scale(1.02) translateY(-2px); opacity: 0.8; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.artifact-slide-in {
+  animation: slideInRight 0.4s var(--smooth-ease) forwards;
+}
+
+.message.user, .message.ai {
+  animation: springIn 0.5s var(--smooth-ease) forwards;
+}
+

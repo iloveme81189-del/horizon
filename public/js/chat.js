@@ -7,6 +7,20 @@ const Chat = (() => {
   let streaming    = false;
   let currentModel = 'llama-3.3-70b-versatile';
   let driveEnabled = false;
+  let activeFileContext = { content: '', turnsLeft: 0, fileName: '' };
+
+  function updateThreadBadge() {
+    const badge = document.getElementById('thread-capacity-badge');
+    if (!badge) return;
+    const len = messages.length;
+    if (len <= 14) {
+      badge.classList.remove('warning');
+      badge.querySelector('span').textContent = `Context: ${len}/14`;
+    } else {
+      badge.classList.add('warning');
+      badge.querySelector('span').textContent = `Context: Pruned (${Math.min(len, 12)}/14 active)`;
+    }
+  }
 
   // Check Drive status once on load
   fetch('/api/memory/status').then(r => r.json()).then(d => {
@@ -35,11 +49,45 @@ const Chat = (() => {
     const safeCode = escHtml(rawCode);
     const safeLang = (typeof code === 'object' ? code.lang : lang) || 'plaintext';
     
+    // Plotly JSON charts
     if (safeLang.toLowerCase() === 'plotly' || safeLang.toLowerCase() === 'json-plotly') {
       const chartId = 'chart-' + Math.random().toString(36).substr(2, 9);
-      // Wait for DOM to insert before rendering
       setTimeout(() => renderPlotlyChart(chartId, rawCode), 500);
-      return `<div id="${chartId}" class="chart-container"><div class="skeleton chart-skeleton"></div></div>`;
+      return `<div class="code-block-wrap plotly-block-wrap">
+        <div class="code-block-header">
+          <span class="code-lang">Plotly Chart</span>
+          <div class="code-actions">
+            <button class="show-artifact-btn" style="margin: 0; padding: 4px 10px; font-size: 11px; display: inline-flex;" onclick="openArtifact(this)" data-lang="plotly" data-title="Plotly Interactive Chart">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right: 4px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              View in Sidebar
+            </button>
+          </div>
+        </div>
+        <div id="${chartId}" class="chart-container"><div class="skeleton chart-skeleton"></div></div>
+        <pre style="display:none"><code>${safeCode}</code></pre>
+      </div>`;
+    }
+
+    // HTML / SVG previews
+    if (['html', 'htm', 'svg', 'xml'].includes(safeLang.toLowerCase()) || (safeLang.toLowerCase() === 'xml' && rawCode.trim().startsWith('<svg'))) {
+      return `<div class="code-block-wrap">
+        <div class="code-block-header">
+          <span class="code-lang">${escHtml(safeLang)}</span>
+          <div class="code-actions">
+            <button class="copy-btn" onclick="copyCode(this)">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              Copy
+            </button>
+          </div>
+        </div>
+        <pre><code class="language-${escHtml(safeLang)}">${safeCode}</code></pre>
+        <div style="padding: 10px 16px; border-top: 1px solid rgba(255,255,255,0.06); background: rgba(0,0,0,0.15); display: flex; justify-content: flex-end;">
+          <button class="show-artifact-btn" style="margin:0;" onclick="openArtifact(this)" data-lang="${escHtml(safeLang)}" data-title="Artifact: ${escHtml(safeLang.toUpperCase())}">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right: 6px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            Open in Artifacts Panel
+          </button>
+        </div>
+      </div>`;
     }
 
     return `<div class="code-block-wrap">
@@ -138,6 +186,29 @@ const Chat = (() => {
     appendMessage('user', text, currentModel);
     messages.push({ role: 'user', content: text });
 
+    // Manage File Context Age Tracking
+    if (file) {
+      activeFileContext = { content: file.content, turnsLeft: 3, fileName: file.fileName };
+    }
+
+    let payloadFileContext = '';
+    if (activeFileContext.turnsLeft > 0) {
+      payloadFileContext = activeFileContext.content;
+      activeFileContext.turnsLeft--;
+      console.log(`[FileContext] Sending file: ${activeFileContext.fileName}. Turns remaining: ${activeFileContext.turnsLeft}`);
+    }
+
+    // Thread Context Pruning (max 14 messages sent)
+    let prunedMessages = [...messages];
+    if (prunedMessages.length > 14) {
+      const firstPair = prunedMessages.slice(0, 2);
+      const recent = prunedMessages.slice(-10);
+      prunedMessages = [...firstPair, ...recent];
+      console.log(`[ThreadPruner] Pruning active. Total msgs: ${messages.length}. Sending: ${prunedMessages.length}`);
+    }
+
+    updateThreadBadge();
+
     // Reset input
     inputEl.value = '';
     inputEl.style.height = 'auto';
@@ -161,9 +232,9 @@ const Chat = (() => {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({
-          messages,
+          messages:    prunedMessages,
           model:       currentModel,
-          fileContext: file ? file.content : '',
+          fileContext: payloadFileContext,
         }),
       });
 
@@ -209,6 +280,7 @@ const Chat = (() => {
     }
 
     messages.push({ role: 'assistant', content: fullText });
+    updateThreadBadge();
 
     // Save to sidebar (localStorage)
     const title = messages[0]?.content?.slice(0, 50) || 'New Chat';
@@ -275,8 +347,10 @@ const Chat = (() => {
     messages    = [];
     currentCid  = genId();
     messagesEl.innerHTML = '';
+    activeFileContext = { content: '', turnsLeft: 0, fileName: '' };
     if (welcomeEl) welcomeEl.style.display = 'flex';
     Sidebar.render(currentCid);
+    updateThreadBadge();
   }
 
   async function loadConversation(cid) {
@@ -293,10 +367,12 @@ const Chat = (() => {
 
     currentCid = cid;
     messages   = chat.messages || [];
+    activeFileContext = { content: '', turnsLeft: 0, fileName: '' };
     messagesEl.innerHTML = '';
     hideWelcome();
     messages.forEach(m => appendMessage(m.role, m.content, currentModel));
     Sidebar.render(cid);
+    updateThreadBadge();
     if (window.innerWidth <= 768) closeMobileSidebar();
   }
 
@@ -362,3 +438,17 @@ function closeMobileSidebar() {
   document.getElementById('sidebar').classList.remove('mobile-open');
   document.getElementById('sidebar-overlay').classList.remove('active');
 }
+
+window.openArtifact = function(btn) {
+  const codeBlock = btn.closest('.code-block-wrap') || btn.closest('.plotly-block-wrap');
+  if (!codeBlock) return;
+  const codeEl = codeBlock.querySelector('code');
+  if (!codeEl) return;
+  const codeText = codeEl.textContent;
+  const lang = btn.dataset.lang || 'html';
+  const title = btn.dataset.title || 'Artifact Preview';
+  
+  if (window.Artifacts) {
+    window.Artifacts.open(title, 'Rendered Output', codeText, lang);
+  }
+};

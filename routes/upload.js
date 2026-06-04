@@ -47,7 +47,8 @@ router.post('/', upload.single('file'), async (req, res) => {
       
       result.content = await new Promise((resolve, reject) => {
         const pyPath = path.join(__dirname, '../utils/markitdown_parser.py');
-        const pythonProcess = spawn('python', [pyPath, tmpPath]);
+        const pyCmd = process.platform === 'win32' ? 'python' : 'python3';
+        const pythonProcess = spawn(pyCmd, [pyPath, tmpPath]);
         
         let outData = '';
         let errData = '';
