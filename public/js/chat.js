@@ -240,33 +240,43 @@ const Chat = (() => {
 
       if (!resp.ok) throw new Error(`Server error ${resp.status}`);
 
-      const reader = resp.body.getReader();
-      const dec    = new TextDecoder();
       typEl.style.display = 'none';
+      
+      const contentType = resp.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        const data = await resp.json();
+        fullText = data.content || data.reply || '';
+        mdEl.innerHTML = renderMarkdown(fullText);
+        highlightCode(mdEl);
+        if (window.MathJax) MathJax.typesetPromise([mdEl]).catch(()=>{});
+      } else {
+        const reader = resp.body.getReader();
+        const dec    = new TextDecoder();
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const lines = dec.decode(value).split('\n');
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
-          const raw = line.slice(6).trim();
-          if (!raw) continue;
-          try {
-            const evt = JSON.parse(raw);
-            if (evt.type === 'delta') {
-              fullText += evt.content;
-              mdEl.innerHTML = renderMarkdown(fullText) + '<span class="streaming-cursor"></span>';
-              scrollToBottom();
-              if (window.MathJax) MathJax.typesetPromise([mdEl]).catch(()=>{});
-            } else if (evt.type === 'done') {
-              mdEl.innerHTML = renderMarkdown(fullText);
-              highlightCode(mdEl);
-              if (window.MathJax) MathJax.typesetPromise([mdEl]).catch(()=>{});
-            } else if (evt.type === 'error') {
-              throw new Error(evt.message);
-            }
-          } catch {}
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const lines = dec.decode(value).split('\n');
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            const raw = line.slice(6).trim();
+            if (!raw) continue;
+            try {
+              const evt = JSON.parse(raw);
+              if (evt.type === 'delta') {
+                fullText += evt.content;
+                mdEl.innerHTML = renderMarkdown(fullText) + '<span class="streaming-cursor"></span>';
+                scrollToBottom();
+                if (window.MathJax) MathJax.typesetPromise([mdEl]).catch(()=>{});
+              } else if (evt.type === 'done') {
+                mdEl.innerHTML = renderMarkdown(fullText);
+                highlightCode(mdEl);
+                if (window.MathJax) MathJax.typesetPromise([mdEl]).catch(()=>{});
+              } else if (evt.type === 'error') {
+                throw new Error(evt.message);
+              }
+            } catch {}
+          }
         }
       }
     } catch (err) {
