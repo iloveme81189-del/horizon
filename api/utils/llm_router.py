@@ -43,5 +43,9 @@ class LLMRouter:
                 return adapter.chat(messages)
         except Exception as exc:
             # Graceful fallback to Groq
-            print("LLM error:", exc, "→ falling back to Groq")
-            return self.adapters["groq"].chat(messages)
+            print(f"LLM error with {model}: {exc} → falling back to Groq")
+            try:
+                return self.adapters["groq"].chat(messages)
+            except Exception as fallback_exc:
+                print(f"Fallback Groq LLM error: {fallback_exc}")
+                return {"content": f"Critical Error: Both primary and fallback LLMs failed. {exc} // {fallback_exc}", "usage": {}, "model": "error"}

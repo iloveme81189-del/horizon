@@ -46,7 +46,10 @@ class NotebookStore:
             page_content=response,
             metadata=metadata,
         )
-        self.vectorstore.add_documents([doc])
+        try:
+            await self.vectorstore.aadd_documents([doc])
+        except Exception as e:
+            print(f"Failed to add document to Pinecone: {e}")
 
     def search(self, query: str, k: int = 5):
         if not getattr(self, 'connected', False):

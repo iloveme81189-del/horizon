@@ -11,6 +11,8 @@ from .utils.llm_router import LLMRouter
 from .utils.notebook import NotebookStore
 from markitdown import MarkItDown
 
+from fastapi.concurrency import run_in_threadpool
+
 app = FastAPI()
 router = LLMRouter()
 
@@ -31,24 +33,27 @@ async def chat_endpoint(request: Request):
     if "messages" not in payload:
         raise HTTPException(status_code=400, detail="Missing 'messages'")
         
-    # Call the appropriate LLM via Router
-    llm_result = router.chat(payload)
+    # Call the appropriate LLM via Router in a threadpool to prevent blocking the event loop
+    try:
+        llm_result = await run_in_threadpool(router.chat, payload)
+    except Exception as e:
+        return {"role": "assistant", "content": f"Critical LLM Failure: {str(e)}"}
     
     # Persist to Notebook LM
     if store:
         try:
             await store.save_interaction(
                 task_id=payload.get("task_id", "anon"),
-                model=llm_result["model"],
-                messages=payload["messages"],
-                response=llm_result["content"],
-                usage=llm_result["usage"],
+                model=llm_result.get("model", "unknown"),
+                messages=payload.get("messages", []),
+                response=llm_result.get("content", ""),
+                usage=llm_result.get("usage", {}),
             )
         except Exception as e:
             print(f"Error saving to notebook: {e}")
             
     # Keep output compatible with what Node.js proxy or frontend expects
-    return {"role": "assistant", "content": llm_result["content"]}
+    return {"role": "assistant", "content": llm_result.get("content", "")}
 
 @app.post("/api/n8n/webhook")
 async def n8n_webhook(request: Request):
@@ -74,12 +79,15 @@ async def n8n_webhook(request: Request):
         ]
     }
     
-    llm_result = router.chat(router_payload)
+    try:
+        llm_result = await run_in_threadpool(router.chat, router_payload)
+    except Exception as e:
+        return {"reply": f"Critical LLM Failure: {str(e)}", "model": model}
     
     # n8n expects "reply"
     return {
-        "reply": llm_result["content"],
-        "model": llm_result["model"]
+        "reply": llm_result.get("content", ""),
+        "model": llm_result.get("model", model)
     }
 
 @app.post("/api/gemini-eval")
@@ -93,8 +101,12 @@ async def gemini_eval(request: Request):
         raise HTTPException(status_code=400, detail="Invalid JSON payload")
 
     payload["model_preference"] = "gemini"
-    llm_result = router.chat(payload)
-    return {"evaluation": llm_result["content"], "usage": llm_result["usage"]}
+    try:
+        llm_result = await run_in_threadpool(router.chat, payload)
+    except Exception as e:
+        return {"evaluation": f"Evaluation Failed: {str(e)}", "usage": {}}
+        
+    return {"evaluation": llm_result.get("content", ""), "usage": llm_result.get("usage", {})}
 
 # ── Fallback MarkItDown Upload Handler ──
 @app.post("/api/upload")

@@ -18,10 +18,10 @@ class GroqAdapter(LLMInterface):
             max_tokens=2048,
         )
         
-        content = response.choices[0].message.content
+        content = response.choices[0].message.content or ""
         usage = {
-            "input_tokens": response.usage.prompt_tokens,
-            "output_tokens": response.usage.completion_tokens,
-            "total_tokens": response.usage.total_tokens,
+            "input_tokens": response.usage.prompt_tokens if hasattr(response.usage, 'prompt_tokens') else 0,
+            "output_tokens": response.usage.completion_tokens if hasattr(response.usage, 'completion_tokens') else 0,
+            "total_tokens": response.usage.total_tokens if hasattr(response.usage, 'total_tokens') else 0,
         }
         return {"content": content, "usage": usage, "model": self.model_name}
