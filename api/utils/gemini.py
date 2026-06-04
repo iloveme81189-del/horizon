@@ -13,9 +13,9 @@ if gemini_key:
     genai.configure(api_key=gemini_key)
 # if using GOOGLE_APPLICATION_CREDENTIALS it configures automatically
 
-# Initialize the Gemini 3.1 Pro model
+# Initialize the Gemini Pro model
 model = genai.GenerativeModel(
-    model_name="gemini-1.5-pro-preview-0409",  # Using closest preview model
+    model_name="gemini-1.5-pro",
     generation_config=genai.GenerationConfig(
         temperature=0.0,
         max_output_tokens=2048,
