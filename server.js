@@ -52,7 +52,6 @@ app.get('/api/models', (_req, res) => {
         icon: '⚡',
         models: [
           { id: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B',   tag: 'Fast',    desc: 'Horizon Rapid — ultra-fast versatile coding' },
-          { id: 'gemma2-9b-it',            label: 'Gemma 2 9B',      tag: 'Creative', desc: 'Horizon Deep — Highly creative Google model on Groq' },
           { id: 'llama-3.1-8b-instant',    label: 'Llama 3.1 8B',    tag: 'Instant', desc: 'Horizon Flash — fastest responses' }
         ]
       },
