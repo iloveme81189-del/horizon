@@ -22,17 +22,19 @@ app.use(express.urlencoded({ extended: true, limit: '100mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ── API routes ────────────────────────────────────────────────
-app.use('/api/chat',         chatRoutes);
+// app.use('/api/chat',         chatRoutes); // Replaced by Python proxy
 app.use('/api/memory',       memoryRoutes);
 app.use('/api/upload',       uploadRoutes);   // Native Node.js file upload (PDF, Excel, Word, Images)
 app.use('/api/n8n/webhook',  n8nRoutes);      // n8n automation webhook
 
-// ── Python Flask Proxy (Swarm only — upload handled natively) ─
+// ── Python FastAPI Proxies (LLM Router & Memory) ────────────
 const pythonProxy = createProxyMiddleware({
   target: 'http://127.0.0.1:8001',
   changeOrigin: true,
 });
 app.use('/api/swarm', pythonProxy);
+app.use('/api/chat', pythonProxy); // Route all chat directly to Python
+app.use('/api/gemini-eval', pythonProxy);
 
 // ── Health check ──────────────────────────────────────────────
 app.get('/health', (_req, res) =>

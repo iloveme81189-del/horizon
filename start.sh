@@ -1,7 +1,7 @@
 #!/bin/bash
-# Start Python Flask Backend on port 8001
-echo "Starting Python Flask Server..."
-python3 api/main.py &
+# Start Python FastAPI server in the background
+echo "Starting Python FastAPI Server on port 8001..."
+python3 -m uvicorn api.app:app --host 0.0.0.0 --port 8001 &
 PYTHON_PID=$!
 
 # Start Node.js Express Server on Render's assigned PORT

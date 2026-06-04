@@ -1,4 +1,13 @@
-Flask==3.0.0
+fastapi
+uvicorn
 markitdown==0.0.1
 openai
-swarm @ git+https://github.com/openai/swarm.git
+groq
+google-generativeai
+langchain
+langchain-community
+langchain-google-genai
+langchain-pinecone
+pinecone-client
+pydantic-settings
+python-multipart
