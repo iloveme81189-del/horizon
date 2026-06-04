@@ -8,8 +8,12 @@ from langchain_pinecone import PineconeVectorStore
 
 class NotebookStore:
     def __init__(self):
+        gemini_key = os.getenv("GEMINI_API_KEY")
+        if not gemini_key:
+            raise Exception("GEMINI_API_KEY is not set. Cannot initialize embeddings.")
+            
         # Cloud embedding model (Dimension: 768)
-        self.embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=os.getenv("GEMINI_API_KEY"))
+        self.embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=gemini_key)
         self.index_name = os.getenv("PINECONE_INDEX_NAME", "horizon-memory")
         
         # Pinecone handles its own API key via the PINECONE_API_KEY environment variable.
