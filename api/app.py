@@ -3,6 +3,10 @@ import json
 import tempfile
 from fastapi import FastAPI, Request, HTTPException, UploadFile, File
 from fastapi.responses import JSONResponse
+
+from .utils.vault import decrypt_env
+decrypt_env() # Decrypt keys BEFORE loading any models
+
 from .utils.llm_router import LLMRouter
 from .utils.notebook import NotebookStore
 from markitdown import MarkItDown
